@@ -1,0 +1,137 @@
+{
+  "kind": "build_request",
+  "title": "Add simple admin dashboard to track all customers, booking progress, reviews, and customer locations",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-14",
+      "text": "Add backend admin APIs to support tracking all customers and all bookings (not just the caller’s bookings), including the ability to filter by booking status (pending/completed/cancelled) and to view the customer (Principal + profile if available) and location (address) for each booking.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "at last create me a website where i can use this chat bot and track all customers progress and reviews and locations of customer and the completes bookings and pending booking keep it simple and easy to acess"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A caller who is an admin can fetch a list of all bookings.",
+        "The list can be filtered by status at the API level or returned with enough data for the UI to split into Pending vs Completed vs Cancelled.",
+        "Each returned booking includes: id, status, createdAt, updatedAt, serviceCategory, address, timeWindow, and the booking owner principal.",
+        "Non-admin callers cannot access these admin-only APIs (must trap/deny)."
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "text": "Add backend support for marking a booking as completed, restricted to admin callers.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "track all customers progress ... and the completes bookings and pending booking"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin can update a booking’s status from pending to completed.",
+        "Updating to completed sets updatedAt to the current time.",
+        "Attempting to complete a cancelled booking is rejected.",
+        "Non-admin callers cannot mark bookings as completed."
+      ]
+    },
+    {
+      "id": "REQ-16",
+      "text": "Add backend support for customer reviews tied to a booking, including creating a review by the booking owner and fetching reviews for admin tracking.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "track all customers progress and reviews"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A booking owner can submit a review for their booking with at least: rating (1–5) and a text comment.",
+        "A review can only be created for an existing booking owned by the caller.",
+        "A review can only be created when the booking status is completed.",
+        "Admin can fetch reviews across all bookings (and/or fetch review by bookingId).",
+        "Non-admin callers cannot fetch all customers’ reviews (they may fetch only their own booking’s review if implemented)."
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "text": "Create a simple, easy-to-access Admin Dashboard screen in the frontend that lets an authenticated admin track all bookings and customer progress, showing at minimum: Pending bookings list, Completed bookings list, and basic customer location (address) and review status for each booking.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "create me a website where i can use this chat bot and track all customers progress and reviews and locations of customer and the completes bookings and pending booking keep it simple and easy to acess"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A new route exists for an Admin Dashboard (e.g., /admin).",
+        "Non-admin users attempting to access the Admin Dashboard see a clear access-denied message in English.",
+        "The Admin Dashboard shows separate sections/tabs for Pending and Completed bookings (and may include Cancelled as an additional section).",
+        "Each booking row shows: service category, status, scheduled time window, customer address (location), and customer identifier (principal or profile name if available).",
+        "Selecting a booking opens a simple details view/panel that includes the booking fields plus review data (if available)."
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "text": "Add admin actions in the frontend Admin Dashboard to mark a pending booking as completed, with loading/error states and automatic refresh of the admin booking lists.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "completes bookings and pending booking"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin can click an action (e.g., “Mark Completed”) on a pending booking.",
+        "While the mutation is in-flight, the UI shows a loading state and prevents duplicate submissions.",
+        "On success, the booking moves from Pending to Completed without a full page reload (query invalidation/refetch is acceptable).",
+        "On failure, the UI shows an error message and offers retry."
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "text": "Add a simple customer review submission UI for authenticated users so reviews can be captured and later tracked by admin (keep it minimal and easy to use).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "track ... reviews"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On the Booking Details screen (or another appropriate existing booking UI), if the booking status is completed and the caller is the booking owner, the user can submit a rating (1–5) and comment.",
+        "After submission, the review is displayed as read-only for that booking.",
+        "The UI handles signed-out state gracefully (no review submission shown when signed out).",
+        "The UI shows loading and error states for review submission."
+      ]
+    }
+  ],
+  "constraints": [
+    "Backend must remain a single Motoko actor in backend/main.mo; add migration logic in backend/migration.mo only if existing stable state must be upgraded.",
+    "Do not edit files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui; compose existing components instead.",
+    "Do not add external databases, third-party auth providers, maps/GPS integrations, or external review services."
+  ],
+  "nonGoals": [
+    "Real-time/live updating dashboards (no WebSockets).",
+    "Displaying customer locations on an interactive map (address text display only).",
+    "Advanced analytics, charts, or export/reporting features beyond the simple lists requested."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

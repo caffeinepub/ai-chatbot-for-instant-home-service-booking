@@ -1,0 +1,113 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-13T21:43:23.040Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 6,
+    "implemented": 3,
+    "items": [
+      {
+        "id": "REQ-14",
+        "summary": "Add backend admin APIs to support tracking all customers and all bookings (not just the caller’s bookings), including the ability to filter by booking status (pending/completed/cancelled) and to view the customer (Principal + profile if available) and location (address) for each booking.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-15",
+        "summary": "Add backend support for marking a booking as completed, restricted to admin callers.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-16",
+        "summary": "Add backend support for customer reviews tied to a booking, including creating a review by the booking owner and fetching reviews for admin tracking.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-17",
+        "summary": "Create a simple, easy-to-access Admin Dashboard screen in the frontend that lets an authenticated admin track all bookings and customer progress, showing at minimum: Pending bookings list, Completed bookings list, and basic customer location (address) and review status for each booking.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/screens/AdminDashboardScreen.tsx",
+          "frontend/src/hooks/useIsAdmin.ts",
+          "frontend/src/hooks/useAdminBookings.ts",
+          "frontend/src/App.tsx",
+          "frontend/src/components/layout/AppHeader.tsx",
+          "frontend/src/backend.d.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/screens/AdminDashboardScreen.tsx",
+          "frontend/src/hooks/useIsAdmin.ts",
+          "frontend/src/hooks/useAdminBookings.ts",
+          "frontend/src/App.tsx",
+          "frontend/src/components/layout/AppHeader.tsx",
+          "frontend/src/backend.d.ts"
+        ]
+      },
+      {
+        "id": "REQ-18",
+        "summary": "Add admin actions in the frontend Admin Dashboard to mark a pending booking as completed, with loading/error states and automatic refresh of the admin booking lists.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useCompleteBooking.ts",
+          "frontend/src/screens/AdminDashboardScreen.tsx",
+          "frontend/src/backend.d.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useCompleteBooking.ts",
+          "frontend/src/screens/AdminDashboardScreen.tsx",
+          "frontend/src/backend.d.ts"
+        ]
+      },
+      {
+        "id": "REQ-19",
+        "summary": "Add a simple customer review submission UI for authenticated users so reviews can be captured and later tracked by admin (keep it minimal and easy to use).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useBookingReview.ts",
+          "frontend/src/screens/BookingDetailsScreen.tsx",
+          "frontend/src/screens/AdminDashboardScreen.tsx",
+          "frontend/src/backend.d.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useBookingReview.ts",
+          "frontend/src/screens/BookingDetailsScreen.tsx",
+          "frontend/src/screens/AdminDashboardScreen.tsx",
+          "frontend/src/backend.d.ts"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
+    "build-request.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/layout/AppHeader.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useAdminBookings.ts",
+    "frontend/src/hooks/useBookingReview.ts",
+    "frontend/src/hooks/useCompleteBooking.ts",
+    "frontend/src/hooks/useIsAdmin.ts",
+    "frontend/src/screens/AdminDashboardScreen.tsx",
+    "frontend/src/screens/BookingDetailsScreen.tsx",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}

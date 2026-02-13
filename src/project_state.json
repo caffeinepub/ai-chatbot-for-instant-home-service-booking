@@ -1,0 +1,207 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 7,
+  "summary": "Extend the home service booking chatbot into a simple web experience that embeds/uses the chatbot and adds an admin-style dashboard to track customer/bookings progress, reviews, and customer locations, including views for pending vs completed bookings.",
+  "architectural_notes": [
+    "Platform constraint: no external AI/NLP APIs; implement multilingual support via deterministic/rule-based language detection, intent classification, and entity extraction on the existing stack.",
+    "Add a simple web dashboard surface (separate from the end-user chat flow) for operational tracking: bookings status (pending/completed), customer info/location, and reviews."
+  ],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-create-a-chat-first-home-service-booking-experience-that-guides-a-user-through-collecting-booking-details-service-type-address-preferred-date-time-window-contact-details-optional-notes-and-produces-a-clear-confirmation-at-the-end-of-the-conversation",
+      "title": "Create a chat-first home service booking experience that guides a user through collecting booking details (service type, address, preferred date/time window, contact details, optional notes) and produces a clear confirmation at the end of the conversation.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-deterministic-non-llm-conversational-engine-state-machine-for-the-chatbot-that-supports-1-guided-step-by-step-booking-2-quick-reply-buttons-for-common-choices-3-a-way-to-restart-clear-the-current-booking-flow-and-4-a-help-message-explaining-what-the-bot-can-do",
+      "title": "Implement a deterministic, non-LLM conversational engine (state machine) for the chatbot that supports: (1) guided step-by-step booking, (2) quick-reply buttons for common choices, (3) a way to restart/clear the current booking flow, and (4) a help message explaining what the bot can do.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-define-a-catalog-of-home-service-categories-e-g-cleaning-plumbing-electrical-hvac-handyman-and-allow-the-user-to-select-one-during-the-chat-flow-the-catalog-must-be-fetched-from-the-backend-so-it-can-be-changed-without-redeploying-the-frontend",
+      "title": "Define a catalog of home service categories (e.g., Cleaning, Plumbing, Electrical, HVAC, Handyman) and allow the user to select one during the chat flow; the catalog must be fetched from the backend so it can be changed without redeploying the frontend.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-my-bookings-view-that-lists-the-signed-in-user-s-bookings-and-allows-viewing-booking-details-including-status-and-cancelling-a-booking-if-not-already-cancelled",
+      "title": "Add a \"My Bookings\" view that lists the signed-in user’s bookings and allows viewing booking details (including status) and cancelling a booking (if not already cancelled).",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-use-internet-identity-for-authentication-so-bookings-are-associated-with-the-logged-in-principal-ensure-the-app-gracefully-handles-signed-out-state-e-g-prompt-to-sign-in-before-confirming-submitting-a-booking-or-before-viewing-bookings",
+      "title": "Use Internet Identity for authentication so bookings are associated with the logged-in principal; ensure the app gracefully handles signed-out state (e.g., prompt to sign in before confirming/submitting a booking or before viewing bookings).",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-coherent-distinct-visual-theme-for-the-app-and-apply-it-consistently-across-the-chat-ui-and-bookings-screens-colors-typography-spacing-and-component-styling-avoid-blue-purple-as-the-primary-palette",
+      "title": "Create a coherent, distinct visual theme for the app and apply it consistently across the chat UI and bookings screens (colors, typography, spacing, and component styling). Avoid blue/purple as the primary palette.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-standard-ux-details-for-a-chat-app-message-timestamps-optional-but-consistent-loading-indicators-for-backend-calls-error-states-with-retry-and-local-persistence-of-in-progress-conversation-state-so-accidental-refresh-does-not-lose-the-current-booking-draft",
+      "title": "Implement standard UX details for a chat app: message timestamps (optional but consistent), loading indicators for backend calls, error states with retry, and local persistence of in-progress conversation state so accidental refresh does not lose the current booking draft.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-generated-static-image-assets-for-the-app-logo-mascot-subtle-background-and-render-them-from-the-frontend-as-static-files-do-not-serve-images-through-the-backend",
+      "title": "Add generated static image assets for the app (logo/mascot + subtle background) and render them from the frontend as static files (do not serve images through the backend).",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-deterministic-rule-based-multilingual-english-hindi-hinglish-language-intent-detection-layer-for-free-text-user-messages-classifying-at-minimum-1-new-booking-2-cancellation-3-inquiry-status-4-reschedule-without-using-any-external-ai-nlp-apis",
+      "title": "Implement a deterministic, rule-based multilingual (English/Hindi/Hinglish) language + intent detection layer for free-text user messages, classifying at minimum: (1) new booking, (2) cancellation, (3) inquiry/status, (4) reschedule, without using any external AI/NLP APIs.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-deterministic-entity-extraction-from-free-text-user-messages-to-populate-a-structured-booking-draft-object-extracting-when-present-service-category-type-area-e-g-kitchen-bathroom-urgency-priority-e-g-urgent-asap-location-address-text-and-time-preference-including-asap-and-convert-the-extracted-values-into-a-structured-booking-json-like-object-used-by-the-booking-flow",
+      "title": "Add deterministic entity extraction from free-text user messages to populate a structured booking draft object, extracting when present: service category/type, area (e.g., kitchen/bathroom), urgency/priority (e.g., urgent/asap), location/address text, and time preference (including ASAP), and convert the extracted values into a structured booking JSON-like object used by the booking flow.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-the-existing-chat-state-machine-and-chatbookingscreen-behavior-to-route-users-into-deterministic-sub-flows-based-on-detected-intent-cancellation-inquiry-status-and-reschedule-while-keeping-the-existing-guided-booking-flow-for-new-bookings",
+      "title": "Extend the existing chat state machine and ChatBookingScreen behavior to route users into deterministic sub-flows based on detected intent: cancellation, inquiry/status, and reschedule, while keeping the existing guided booking flow for new bookings.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-simple-easy-to-access-admin-dashboard-screen-in-the-frontend-that-lets-an-authenticated-admin-track-all-bookings-and-customer-progress-showing-at-minimum-pending-bookings-list-completed-bookings-list-and-basic-customer-location-address-and-review-status-for-each-booking",
+      "title": "Create a simple, easy-to-access Admin Dashboard screen in the frontend that lets an authenticated admin track all bookings and customer progress, showing at minimum: Pending bookings list, Completed bookings list, and basic customer location (address) and review status for each booking.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-admin-actions-in-the-frontend-admin-dashboard-to-mark-a-pending-booking-as-completed-with-loading-error-states-and-automatic-refresh-of-the-admin-booking-lists",
+      "title": "Add admin actions in the frontend Admin Dashboard to mark a pending booking as completed, with loading/error states and automatic refresh of the admin booking lists.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-simple-customer-review-submission-ui-for-authenticated-users-so-reviews-can-be-captured-and-later-tracked-by-admin-keep-it-minimal-and-easy-to-use",
+      "title": "Add a simple customer review submission UI for authenticated users so reviews can be captured and later tracked by admin (keep it minimal and easy to use).",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Build an AI chatbot for instant home service booking.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Add backend support for creating, storing, and retrieving bookings, including: booking id, user principal, chosen service category, address, requested time window, contact info collected in chat, notes, status, and timestamps.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Add rule-based multilingual (English/Hindi/Hinglish) language + intent detection (new booking, cancellation, inquiry, reschedule) from free-text user messages.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Add deterministic entity extraction from user text (service category/type, area, urgency/priority, location/address, time/ASAP) and convert chat into structured booking JSON used by the booking flow.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Extend booking flow to support non-booking intents (cancellation, inquiry/status, reschedule) detected from messages and route user to the correct deterministic flow/response.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Add backend support to reschedule an existing booking owned by the caller by updating its timeWindow and updatedAt timestamp, enforcing the same access control rules as cancelBooking (caller must be the booking owner or an admin).",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Create a simple website/web app UI to use/host the existing booking chatbot (easy to access, simple navigation).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Add an admin/dashboard view to track all customers and booking progress, including pending vs completed bookings, customer locations, and customer reviews.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Add backend admin APIs to support tracking all customers and all bookings (not just the caller’s bookings), including the ability to filter by booking status (pending/completed/cancelled) and to view the customer (Principal + profile if available) and location (address) for each booking.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Add backend support for marking a booking as completed, restricted to admin callers.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Add backend support for customer reviews tied to a booking, including creating a review by the booking owner and fetching reviews for admin tracking.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "AI Chatbot for Instant Home Service Booking",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

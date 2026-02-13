@@ -1,0 +1,109 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Frontend Admin Dashboard for bookings progress, completion actions, and reviews",
+  "requirements": [
+    {
+      "id": "REQ-17",
+      "summary": "Create an Admin Dashboard route/screen that allows authenticated admins to track all bookings by status with booking details, customer identifier, address, and review status.",
+      "acceptanceCriteria": [
+        "A new route exists for an Admin Dashboard (e.g., /admin).",
+        "Non-admin users attempting to access the Admin Dashboard see a clear access-denied message in English.",
+        "The Admin Dashboard shows separate sections/tabs for Pending and Completed bookings (and may include Cancelled as an additional section).",
+        "Each booking row shows: service category, status, scheduled time window, customer address (location), and customer identifier (principal or profile name if available).",
+        "Selecting a booking opens a simple details view/panel that includes the booking fields plus review data (if available)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/screens/AdminDashboardScreen.tsx",
+          "operation": "create",
+          "description": "Implement the Admin Dashboard UI using shadcn-ui components (e.g., Tabs, Card, Table/List, Dialog/Sheet) to show Pending/Completed/(optional Cancelled) bookings and a selectable details panel that also displays review info when available. Use the authorization component patterns to ensure only authenticated admins can view the dashboard content; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useIsAdmin.ts",
+          "operation": "create",
+          "description": "Add a small react-query hook that calls the backend capability for checking whether the caller is an admin (e.g., isCallerAdmin) and exposes loading/error states for gating /admin. Use the authorization component guidance for handling signed-out/guest callers and authorization failures; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useAdminBookings.ts",
+          "operation": "create",
+          "description": "Create react-query hooks for fetching the admin bookings list (optionally parameterized by status) and for resolving customer display names by fetching user profiles when available (fallback to principal string). Handle authorization-denied errors by surfacing a clear Access Denied UI state. Use authorization component guidance for role-based access control and error handling; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire the new /admin route into TanStack Router by adding an AdminDashboardScreen route as a child of the root route."
+        },
+        {
+          "path": "frontend/src/components/layout/AppHeader.tsx",
+          "operation": "modify",
+          "description": "Add a simple navigation entry to reach the Admin Dashboard (e.g., an 'Admin' button/link). Only show it when authenticated and the caller is an admin (use the new is-admin hook). Use authorization component guidance for gating navigation by role; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/backend.d.ts",
+          "operation": "modify",
+          "description": "Update frontend backend type declarations to reflect new admin booking-tracking backend capabilities and any new data fields needed by the dashboard (e.g., completed status, admin bookings list function, review lookup data)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "summary": "Add an admin-only action in the Admin Dashboard to mark a pending booking as completed with proper loading/error handling and automatic list refresh.",
+      "acceptanceCriteria": [
+        "Admin can click an action (e.g., “Mark Completed”) on a pending booking.",
+        "While the mutation is in-flight, the UI shows a loading state and prevents duplicate submissions.",
+        "On success, the booking moves from Pending to Completed without a full page reload (query invalidation/refetch is acceptable).",
+        "On failure, the UI shows an error message and offers retry."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useCompleteBooking.ts",
+          "operation": "create",
+          "description": "Create a react-query mutation hook that calls the backend capability for marking a booking as completed. On success, invalidate/refetch admin bookings queries so the booking moves between sections without a full reload; on error, surface an actionable message. Use authorization component guidance to handle admin-only authorization failures cleanly; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/screens/AdminDashboardScreen.tsx",
+          "operation": "modify",
+          "description": "Add a 'Mark Completed' action on pending bookings that uses the completion mutation hook, disables duplicate submissions while pending, and shows inline loading/error UI. Ensure the UI refreshes lists on success (query invalidation/refetch acceptable)."
+        },
+        {
+          "path": "frontend/src/backend.d.ts",
+          "operation": "modify",
+          "description": "Update frontend backend type declarations to include the admin-only booking-completion backend capability used by the mutation hook."
+        }
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "summary": "Add a minimal review submission UI for booking owners on completed bookings, and display submitted review read-only afterward.",
+      "acceptanceCriteria": [
+        "On the Booking Details screen (or another appropriate existing booking UI), if the booking status is completed and the caller is the booking owner, the user can submit a rating (1–5) and comment.",
+        "After submission, the review is displayed as read-only for that booking.",
+        "The UI handles signed-out state gracefully (no review submission shown when signed out).",
+        "The UI shows loading and error states for review submission."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useBookingReview.ts",
+          "operation": "create",
+          "description": "Add react-query hooks to (1) fetch the review for a given booking (if any) and (2) submit a review for a booking. Ensure loading and error states are exposed, and invalidate relevant caches (booking review, booking details, and admin dashboard review status if applicable). Use authorization component guidance for signed-in checks and handling authorization traps gracefully; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/screens/BookingDetailsScreen.tsx",
+          "operation": "modify",
+          "description": "Embed a minimal review section: when signed in, booking is completed, and caller is the booking owner, show a simple form (rating 1–5 + comment) with submit loading/error states; after successful submission (or when a review already exists), show the review read-only. Use authorization component guidance for comparing the booking owner principal to the current identity principal and hiding UI when signed out; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/screens/AdminDashboardScreen.tsx",
+          "operation": "modify",
+          "description": "Display review status per booking in the admin lists (e.g., 'Reviewed' vs 'No review') and show full review content in the booking details panel when available. Keep it read-only for admin tracking."
+        },
+        {
+          "path": "frontend/src/backend.d.ts",
+          "operation": "modify",
+          "description": "Update frontend backend type declarations to include review-related types and backend capabilities needed for fetching/submitting reviews."
+        }
+      ]
+    }
+  ]
+}
