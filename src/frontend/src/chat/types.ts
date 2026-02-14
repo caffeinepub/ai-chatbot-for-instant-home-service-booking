@@ -11,6 +11,7 @@ export interface ChatMessage {
 export type ConversationStep =
   | 'welcome'
   | 'service-selection'
+  | 'customer-name'
   | 'address'
   | 'time-window'
   | 'contact-info'
@@ -26,6 +27,7 @@ export type ConversationStep =
 export type ActiveIntent = 'new-booking' | 'cancellation' | 'inquiry' | 'reschedule' | null;
 
 export interface BookingDraft {
+  customerName?: string;
   serviceCategory?: string;
   address?: string;
   timeWindow?: {

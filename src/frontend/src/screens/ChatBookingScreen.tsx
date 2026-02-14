@@ -67,198 +67,83 @@ export default function ChatBookingScreen() {
   // Handle booking details fetch result for inquiry
   useEffect(() => {
     if (shouldFetchBooking && !isLoadingBooking && bookingDetails && !isExecutingAction) {
-      const statusBadge = bookingDetails.status === 'cancelled' ? '❌' : 
-                         bookingDetails.status === 'pending' ? '⏳' : '✅';
+      const statusLabel = bookingDetails.status === 'pending' ? 'Pending' : 'Cancelled';
+      const message = `Your booking (ID: BK-${bookingDetails.id}) for ${bookingDetails.serviceCategory} at ${bookingDetails.address} is currently ${statusLabel}.`;
       
-      const timeWindow = new Date(Number(bookingDetails.timeWindow.start) / 1_000_000);
-      const timeLabel = timeWindow.toLocaleDateString() + ' ' + timeWindow.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      
-      const resultMessage = `${statusBadge} Booking Details:\n\n` +
-        `ID: BK${bookingDetails.id}\n` +
-        `Service: ${bookingDetails.serviceCategory}\n` +
-        `Address: ${bookingDetails.address}\n` +
-        `Time: ${timeLabel}\n` +
-        `Status: ${bookingDetails.status}\n` +
-        `Contact: ${bookingDetails.contactInfo}` +
-        (bookingDetails.notes ? `\nNotes: ${bookingDetails.notes}` : '');
-      
-      const newState: ConversationState = {
-        ...conversationState,
-        step: 'show-result',
-        messages: [
-          ...conversationState.messages,
-          {
-            id: crypto.randomUUID(),
-            role: 'bot',
-            content: resultMessage,
-            timestamp: Date.now(),
-          },
-          {
-            id: crypto.randomUUID(),
-            role: 'bot',
-            content: 'Is there anything else I can help you with? Type "restart" to start a new conversation.',
-            timestamp: Date.now(),
-          },
-        ],
+      const newState = addSystemMessage(conversationState, message);
+      const finalState = {
+        ...newState,
+        step: 'show-result' as const,
       };
-      
-      setConversationState(newState);
+      setConversationState(finalState);
       setIsExecutingAction(true);
     }
   }, [shouldFetchBooking, isLoadingBooking, bookingDetails]);
 
-  // Handle booking fetch error
+  // Handle booking fetch error for inquiry
   useEffect(() => {
-    if (shouldFetchBooking && bookingError && !isExecutingAction) {
-      const errorMessage = `❌ Sorry, I couldn't find that booking. ${bookingError.message}\n\nPlease check the booking ID and try again, or type "restart" to start over.`;
-      
-      const newState: ConversationState = {
-        ...conversationState,
-        step: 'show-result',
-        messages: [
-          ...conversationState.messages,
-          {
-            id: crypto.randomUUID(),
-            role: 'bot',
-            content: errorMessage,
-            timestamp: Date.now(),
-          },
-        ],
+    if (shouldFetchBooking && !isLoadingBooking && bookingError && !isExecutingAction) {
+      const errorMessage = `Sorry, I couldn't find that booking. Please check the booking ID and try again.`;
+      const newState = addSystemMessage(conversationState, errorMessage);
+      const finalState = {
+        ...newState,
+        step: 'show-result' as const,
       };
-      
-      setConversationState(newState);
+      setConversationState(finalState);
       setIsExecutingAction(true);
     }
-  }, [shouldFetchBooking, bookingError]);
+  }, [shouldFetchBooking, isLoadingBooking, bookingError]);
 
   const executeNonBookingAction = () => {
     if (!isAuthenticated) {
-      const newState = addSystemMessage(conversationState, 'Please log in to continue with this action.');
-      setConversationState(newState);
+      const newState = addSystemMessage(conversationState, 'Please log in to perform this action.');
+      setConversationState({ ...newState, step: 'show-result' });
       setIsExecutingAction(true);
       return;
     }
 
-    if (!conversationState.targetBookingId) {
-      return;
-    }
-
-    setIsExecutingAction(true);
-
-    if (conversationState.activeIntent === 'cancellation') {
+    if (conversationState.activeIntent === 'cancellation' && conversationState.targetBookingId) {
+      setIsExecutingAction(true);
       cancelBooking(conversationState.targetBookingId, {
         onSuccess: () => {
-          const newState: ConversationState = {
-            ...conversationState,
-            step: 'show-result',
-            messages: [
-              ...conversationState.messages,
-              {
-                id: crypto.randomUUID(),
-                role: 'bot',
-                content: `✅ Your booking (BK${conversationState.targetBookingId}) has been cancelled successfully.\n\nIs there anything else I can help you with? Type "restart" to start a new conversation.`,
-                timestamp: Date.now(),
-              },
-            ],
-          };
-          setConversationState(newState);
+          const newState = addSystemMessage(conversationState, `Your booking (ID: BK-${conversationState.targetBookingId}) has been cancelled successfully.`);
+          setConversationState({ ...newState, step: 'show-result' });
         },
         onError: (error: Error) => {
-          const newState: ConversationState = {
-            ...conversationState,
-            step: 'show-result',
-            messages: [
-              ...conversationState.messages,
-              {
-                id: crypto.randomUUID(),
-                role: 'bot',
-                content: `❌ Failed to cancel booking: ${error.message}\n\nPlease try again or type "restart" to start over.`,
-                timestamp: Date.now(),
-              },
-            ],
-          };
-          setConversationState(newState);
+          const newState = addSystemMessage(conversationState, `Failed to cancel booking: ${error.message}`);
+          setConversationState({ ...newState, step: 'show-result' });
         },
       });
-    } else if (conversationState.activeIntent === 'reschedule') {
-      if (!conversationState.draft.timeWindow) {
-        setIsExecutingAction(false);
-        return;
-      }
-
+    } else if (conversationState.activeIntent === 'reschedule' && conversationState.targetBookingId && conversationState.draft.timeWindow) {
+      setIsExecutingAction(true);
       rescheduleBooking(
-        {
-          bookingId: conversationState.targetBookingId,
-          newTimeWindow: conversationState.draft.timeWindow,
-        },
+        { bookingId: conversationState.targetBookingId, newTimeWindow: conversationState.draft.timeWindow },
         {
           onSuccess: () => {
-            const newState: ConversationState = {
-              ...conversationState,
-              step: 'show-result',
-              messages: [
-                ...conversationState.messages,
-                {
-                  id: crypto.randomUUID(),
-                  role: 'bot',
-                  content: `✅ Your booking (BK${conversationState.targetBookingId}) has been rescheduled to ${conversationState.rescheduleTime} successfully!\n\nIs there anything else I can help you with? Type "restart" to start a new conversation.`,
-                  timestamp: Date.now(),
-                },
-              ],
-            };
-            setConversationState(newState);
+            const newState = addSystemMessage(conversationState, `Your booking (ID: BK-${conversationState.targetBookingId}) has been rescheduled successfully to ${conversationState.rescheduleTime}.`);
+            setConversationState({ ...newState, step: 'show-result' });
           },
           onError: (error: Error) => {
-            const newState: ConversationState = {
-              ...conversationState,
-              step: 'show-result',
-              messages: [
-                ...conversationState.messages,
-                {
-                  id: crypto.randomUUID(),
-                  role: 'bot',
-                  content: `❌ Failed to reschedule booking: ${error.message}\n\nPlease try again or type "restart" to start over.`,
-                  timestamp: Date.now(),
-                },
-              ],
-            };
-            setConversationState(newState);
+            const newState = addSystemMessage(conversationState, `Failed to reschedule booking: ${error.message}`);
+            setConversationState({ ...newState, step: 'show-result' });
           },
         }
       );
     }
-    // inquiry is handled by the useEffect watching bookingDetails
   };
 
   const handleSendMessage = () => {
     if (!inputValue.trim() || isSubmitting) return;
-
-    // Reset execution flag when user sends new message
-    if (isExecutingAction) {
-      setIsExecutingAction(false);
-    }
 
     const newState = processUserInput(conversationState, inputValue, serviceCategories);
     setConversationState(newState);
     setInputValue('');
   };
 
-  const handleQuickReply = (option: string) => {
+  const handleQuickReply = (reply: string) => {
     if (isSubmitting) return;
-    
-    if (isExecutingAction) {
-      setIsExecutingAction(false);
-    }
-    
-    const newState = processUserInput(conversationState, option, serviceCategories);
+    const newState = processUserInput(conversationState, reply, serviceCategories);
     setConversationState(newState);
-  };
-
-  const handleRestart = () => {
-    clearConversation();
-    setConversationState(createInitialState());
-    setInputValue('');
-    setIsExecutingAction(false);
   };
 
   const handleConfirmBooking = () => {
@@ -270,11 +155,14 @@ export default function ChatBookingScreen() {
 
     const { draft } = conversationState;
     if (!draft.serviceCategory || !draft.address || !draft.timeWindow || !draft.contactInfo) {
+      const newState = addSystemMessage(conversationState, 'Missing required booking information. Please restart.');
+      setConversationState(newState);
       return;
     }
 
     createBooking(
       {
+        name: draft.customerName,
         serviceCategory: draft.serviceCategory,
         address: draft.address,
         timeWindow: draft.timeWindow,
@@ -282,192 +170,174 @@ export default function ChatBookingScreen() {
         notes: draft.notes || '',
       },
       {
-        onSuccess: () => {
-          const newState: ConversationState = {
-            ...conversationState,
-            step: 'complete',
-            messages: [
-              ...conversationState.messages,
-              {
-                id: crypto.randomUUID(),
-                role: 'bot',
-                content: '🎉 Your booking has been confirmed! You can view it in "My Bookings". Thank you for using ServiceBot!',
-                timestamp: Date.now(),
-              },
-            ],
-          };
+        onSuccess: (bookingId) => {
+          const newState = addSystemMessage(
+            conversationState,
+            `✅ Booking confirmed! Your booking ID is BK-${bookingId}. You'll receive updates at ${draft.contactInfo}.`
+          );
+          setConversationState({ ...newState, step: 'complete' });
+          clearConversation();
+        },
+        onError: (error: Error) => {
+          const newState = addSystemMessage(conversationState, `Failed to create booking: ${error.message}`);
           setConversationState(newState);
-          setTimeout(() => {
-            handleRestart();
-          }, 3000);
         },
       }
     );
   };
 
-  const lastMessage = conversationState.messages[conversationState.messages.length - 1];
-  const showQuickReplies = lastMessage?.quickReplies && 
-                          conversationState.step !== 'confirmation' && 
-                          conversationState.step !== 'complete' &&
-                          conversationState.step !== 'execute-action' &&
-                          conversationState.step !== 'show-result';
+  const handleRestart = () => {
+    clearConversation();
+    setConversationState(createInitialState());
+    setIsExecutingAction(false);
+  };
 
-  const showInput = conversationState.step !== 'confirmation' && 
-                   conversationState.step !== 'complete' &&
-                   conversationState.step !== 'execute-action';
+  const currentMessage = conversationState.messages[conversationState.messages.length - 1];
+  const showQuickReplies = currentMessage?.quickReplies && conversationState.step !== 'confirmation' && conversationState.step !== 'complete' && conversationState.step !== 'show-result';
 
   return (
     <div 
-      className="flex-1 flex flex-col relative"
-      style={{
-        backgroundImage: 'url(/assets/generated/chat-bg-pattern.dim_1600x900.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
-      }}
+      className="flex-1 flex flex-col bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: 'url(/assets/generated/chat-bg-pattern.dim_1600x900.png)' }}
     >
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
-      
-      <div className="relative flex-1 flex flex-col max-w-4xl mx-auto w-full">
-        {/* Error state for categories */}
+      <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full p-4 md:p-8">
+        {/* Header */}
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img 
+              src="/assets/generated/chatbot-mascot.dim_512x512.png" 
+              alt="ServiceBot" 
+              className="w-12 h-12 rounded-full shadow-warm"
+            />
+            <div>
+              <h1 className="text-2xl font-bold">ServiceBot</h1>
+              <p className="text-sm text-muted-foreground">Your home service assistant</p>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" onClick={handleRestart}>
+            <RotateCcw className="mr-2 h-4 w-4" />
+            Restart
+          </Button>
+        </div>
+
+        {/* Error Alert */}
         {categoriesError && (
-          <div className="p-4">
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="flex items-center justify-between">
-                <span>Failed to load service categories</span>
-                <Button variant="outline" size="sm" onClick={() => refetchCategories()}>
-                  Retry
-                </Button>
-              </AlertDescription>
-            </Alert>
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="flex items-center justify-between">
+              <span>Failed to load service categories</span>
+              <Button variant="outline" size="sm" onClick={() => refetchCategories()}>
+                Retry
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Chat Area */}
+        <Card className="flex-1 flex flex-col shadow-warm backdrop-blur-sm bg-background/95">
+          <div className="flex-1 overflow-hidden">
+            <ChatTranscript messages={conversationState.messages} />
           </div>
-        )}
 
-        {/* Loading state */}
-        {categoriesLoading && (
-          <div className="flex items-center justify-center p-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        )}
-
-        {/* Chat transcript */}
-        {!categoriesLoading && (
-          <ChatTranscript messages={conversationState.messages} />
-        )}
-
-        {/* Confirmation summary for new bookings */}
-        {conversationState.step === 'confirmation' && conversationState.activeIntent === 'new-booking' && (
-          <div className="px-4 pb-4">
-            <Card className="p-6 max-w-2xl mx-auto shadow-warm">
-              <h3 className="font-bold text-lg mb-4">Booking Summary</h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Service:</span>
-                  <Badge variant="secondary">{conversationState.draft.serviceCategory}</Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Address:</span>
-                  <span className="font-medium text-right max-w-xs">{conversationState.draft.address}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Time:</span>
-                  <span className="font-medium">
-                    {conversationState.draft.timePreference === 'asap' ? 'ASAP' : `${conversationState.draft.timePreference || 'Tomorrow'}`}
-                  </span>
-                </div>
-                {conversationState.draft.priority && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Priority:</span>
-                    <Badge variant={conversationState.draft.priority === 'urgent' ? 'destructive' : 'default'}>
-                      {conversationState.draft.priority.toUpperCase()}
-                    </Badge>
+          {/* Confirmation Summary */}
+          {conversationState.step === 'confirmation' && (
+            <div className="p-4 border-t bg-accent/30">
+              <div className="space-y-3">
+                <h3 className="font-semibold text-lg">Booking Summary</h3>
+                {conversationState.draft.customerName && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Name:</span>
+                    <span className="font-medium">{conversationState.draft.customerName}</span>
                   </div>
                 )}
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Service:</span>
+                  <span className="font-medium">{conversationState.draft.serviceCategory}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Address:</span>
+                  <span className="font-medium">{conversationState.draft.address}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Time:</span>
+                  <span className="font-medium">{conversationState.draft.timePreference}</span>
+                </div>
+                <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Contact:</span>
                   <span className="font-medium">{conversationState.draft.contactInfo}</span>
                 </div>
                 {conversationState.draft.notes && (
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Notes:</span>
-                    <span className="font-medium text-right max-w-xs">{conversationState.draft.notes}</span>
+                    <span className="font-medium">{conversationState.draft.notes}</span>
                   </div>
                 )}
-              </div>
-              
-              {!isAuthenticated && (
-                <Alert className="mt-4">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
+                <div className="flex gap-2 pt-2">
+                  <Button 
+                    onClick={handleConfirmBooking} 
+                    disabled={isCreatingBooking || !isAuthenticated}
+                    className="flex-1"
+                  >
+                    {isCreatingBooking ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Confirming...
+                      </>
+                    ) : (
+                      'Confirm Booking'
+                    )}
+                  </Button>
+                  <Button variant="outline" onClick={handleRestart}>
+                    Cancel
+                  </Button>
+                </div>
+                {!isAuthenticated && (
+                  <p className="text-xs text-destructive text-center">
                     Please log in to confirm your booking
-                  </AlertDescription>
-                </Alert>
-              )}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
 
-              <div className="flex gap-2 mt-6">
-                <Button variant="outline" onClick={handleRestart} className="flex-1">
-                  Start Over
-                </Button>
-                <Button 
-                  onClick={handleConfirmBooking} 
-                  disabled={!isAuthenticated || isSubmitting}
+          {/* Quick Replies */}
+          {showQuickReplies && (
+            <div className="p-4 border-t">
+              <QuickReplies 
+                options={currentMessage.quickReplies!} 
+                onSelect={handleQuickReply}
+                disabled={isSubmitting}
+              />
+            </div>
+          )}
+
+          {/* Input Area */}
+          {conversationState.step !== 'confirmation' && conversationState.step !== 'complete' && conversationState.step !== 'execute-action' && (
+            <div className="p-4 border-t">
+              <div className="flex gap-2">
+                <Input
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                  placeholder="Type your message..."
+                  disabled={isSubmitting || categoriesLoading}
                   className="flex-1"
+                />
+                <Button 
+                  onClick={handleSendMessage} 
+                  disabled={!inputValue.trim() || isSubmitting || categoriesLoading}
+                  size="icon"
                 >
-                  {isCreatingBooking ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Confirming...
-                    </>
+                  {isSubmitting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    'Confirm Booking'
+                    <Send className="h-4 w-4" />
                   )}
                 </Button>
               </div>
-            </Card>
-          </div>
-        )}
-
-        {/* Quick replies */}
-        {showQuickReplies && (
-          <QuickReplies
-            options={lastMessage.quickReplies!}
-            onSelect={handleQuickReply}
-            disabled={isSubmitting || categoriesLoading}
-          />
-        )}
-
-        {/* Input area */}
-        {showInput && (
-          <div className="p-4 border-t border-border bg-card/95 backdrop-blur">
-            <div className="max-w-3xl mx-auto flex gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleRestart}
-                disabled={isSubmitting}
-                title="Restart conversation"
-              >
-                <RotateCcw className="h-4 w-4" />
-              </Button>
-              <Input
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                placeholder="Type your message in English, Hindi, or Hinglish..."
-                disabled={isSubmitting || categoriesLoading}
-                className="flex-1"
-              />
-              <Button
-                onClick={handleSendMessage}
-                disabled={!inputValue.trim() || isSubmitting || categoriesLoading}
-                size="icon"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
             </div>
-          </div>
-        )}
+          )}
+        </Card>
       </div>
     </div>
   );

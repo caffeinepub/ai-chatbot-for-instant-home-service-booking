@@ -24,6 +24,7 @@ export const Booking = IDL.Record({
   'status' : BookingStatus,
   'serviceCategory' : IDL.Text,
   'contactInfo' : IDL.Text,
+  'name' : IDL.Opt(IDL.Text),
   'createdAt' : Time,
   'user' : IDL.Principal,
   'updatedAt' : Time,
@@ -42,7 +43,7 @@ export const idlService = IDL.Service({
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'cancelBooking' : IDL.Func([IDL.Nat], [], []),
   'createBooking' : IDL.Func(
-      [IDL.Text, IDL.Text, TimeWindow, IDL.Text, IDL.Text],
+      [IDL.Opt(IDL.Text), IDL.Text, IDL.Text, TimeWindow, IDL.Text, IDL.Text],
       [IDL.Nat],
       [],
     ),
@@ -80,6 +81,7 @@ export const idlFactory = ({ IDL }) => {
     'status' : BookingStatus,
     'serviceCategory' : IDL.Text,
     'contactInfo' : IDL.Text,
+    'name' : IDL.Opt(IDL.Text),
     'createdAt' : Time,
     'user' : IDL.Principal,
     'updatedAt' : Time,
@@ -98,7 +100,7 @@ export const idlFactory = ({ IDL }) => {
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'cancelBooking' : IDL.Func([IDL.Nat], [], []),
     'createBooking' : IDL.Func(
-        [IDL.Text, IDL.Text, TimeWindow, IDL.Text, IDL.Text],
+        [IDL.Opt(IDL.Text), IDL.Text, IDL.Text, TimeWindow, IDL.Text, IDL.Text],
         [IDL.Nat],
         [],
       ),

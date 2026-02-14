@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Loader2, ArrowLeft, MapPin, Calendar, Phone, FileText, AlertCircle, X, Star } from 'lucide-react';
+import { Loader2, ArrowLeft, MapPin, Calendar, Phone, FileText, AlertCircle, X, Star, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { useState } from 'react';
 import { BookingStatus } from '../backend';
@@ -121,6 +121,19 @@ export default function BookingDetailsScreen() {
           </CardHeader>
 
           <CardContent className="space-y-6">
+            {booking.name && (
+              <>
+                <div>
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <User className="h-4 w-4 text-primary" />
+                    Customer Name
+                  </h3>
+                  <p className="text-muted-foreground">{booking.name}</p>
+                </div>
+                <Separator />
+              </>
+            )}
+
             <div>
               <h3 className="font-semibold mb-3 flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-primary" />

@@ -15,6 +15,7 @@ export interface Booking {
   'status' : BookingStatus,
   'serviceCategory' : string,
   'contactInfo' : string,
+  'name' : [] | [string],
   'createdAt' : Time,
   'user' : Principal,
   'updatedAt' : Time,
@@ -39,7 +40,7 @@ export interface _SERVICE {
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'cancelBooking' : ActorMethod<[bigint], undefined>,
   'createBooking' : ActorMethod<
-    [string, string, TimeWindow, string, string],
+    [[] | [string], string, string, TimeWindow, string, string],
     bigint
   >,
   'getBookingDetails' : ActorMethod<[bigint], Booking>,

@@ -128,6 +128,10 @@ export default function AdminDashboardScreen() {
   };
 
   const getCustomerDisplay = (bookingWithCustomer: BookingWithCustomer) => {
+    // Priority: booking.name -> customerProfile.name -> principal short form
+    if (bookingWithCustomer.booking.name) {
+      return bookingWithCustomer.booking.name;
+    }
     if (bookingWithCustomer.customerProfile) {
       return bookingWithCustomer.customerProfile.name;
     }
@@ -235,23 +239,21 @@ export default function AdminDashboardScreen() {
                     No pending bookings
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>ID</TableHead>
-                          <TableHead>Service</TableHead>
-                          <TableHead>Location</TableHead>
-                          <TableHead>Scheduled</TableHead>
-                          <TableHead>Customer</TableHead>
-                          <TableHead>Action</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {pendingBookings.map(b => renderBookingRow(b, true))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>Service</TableHead>
+                        <TableHead>Location</TableHead>
+                        <TableHead>Scheduled</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pendingBookings.map(b => renderBookingRow(b, true))}
+                    </TableBody>
+                  </Table>
                 )}
               </CardContent>
             </Card>
@@ -262,20 +264,18 @@ export default function AdminDashboardScreen() {
               <CardHeader>
                 <CardTitle>Completed Bookings</CardTitle>
                 <CardDescription>
-                  Successfully completed services
+                  Services that have been completed
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {bookingsLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p>Completed bookings will appear here once the backend adds support for the 'completed' status.</p>
-                    <p className="text-sm mt-2">Currently, bookings can only be 'pending' or 'cancelled'.</p>
-                  </div>
-                )}
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground mb-2">
+                    Completed bookings will appear here once the backend adds 'completed' status support.
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Currently, bookings can only be marked as pending or cancelled.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -298,181 +298,164 @@ export default function AdminDashboardScreen() {
                     No cancelled bookings
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>ID</TableHead>
-                          <TableHead>Service</TableHead>
-                          <TableHead>Location</TableHead>
-                          <TableHead>Scheduled</TableHead>
-                          <TableHead>Customer</TableHead>
-                          <TableHead>Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {cancelledBookings.map(b => renderBookingRow(b, false))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>Service</TableHead>
+                        <TableHead>Location</TableHead>
+                        <TableHead>Scheduled</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {cancelledBookings.map(b => renderBookingRow(b, false))}
+                    </TableBody>
+                  </Table>
                 )}
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
+      </div>
 
-        {/* Booking Details Sheet */}
-        <Sheet open={!!selectedBooking} onOpenChange={(open) => !open && setSelectedBooking(null)}>
-          <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-            {selectedBooking && (
-              <>
-                <SheetHeader>
-                  <SheetTitle className="flex items-center gap-2">
-                    Booking Details
-                    {getStatusBadge(selectedBooking.booking.status)}
-                  </SheetTitle>
-                  <SheetDescription>
-                    ID: BK-{selectedBooking.booking.id.toString()}
-                  </SheetDescription>
-                </SheetHeader>
+      {/* Booking Details Sheet */}
+      <Sheet open={!!selectedBooking} onOpenChange={(open) => !open && setSelectedBooking(null)}>
+        <SheetContent className="overflow-y-auto">
+          {selectedBooking && (
+            <>
+              <SheetHeader>
+                <SheetTitle className="flex items-center justify-between">
+                  <span>Booking Details</span>
+                  {getStatusBadge(selectedBooking.booking.status)}
+                </SheetTitle>
+                <SheetDescription>
+                  ID: BK-{selectedBooking.booking.id.toString()}
+                </SheetDescription>
+              </SheetHeader>
 
-                <div className="mt-6 space-y-6">
-                  <div>
-                    <h3 className="font-semibold mb-2 flex items-center gap-2">
-                      <User className="h-4 w-4 text-primary" />
-                      Customer Information
-                    </h3>
-                    {selectedBooking.customerProfile ? (
-                      <div className="space-y-1 text-sm">
-                        <p><span className="text-muted-foreground">Name:</span> {selectedBooking.customerProfile.name}</p>
-                        <p><span className="text-muted-foreground">Email:</span> {selectedBooking.customerProfile.email}</p>
-                        <p><span className="text-muted-foreground">Phone:</span> {selectedBooking.customerProfile.phone}</p>
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        Principal: {selectedBooking.booking.user.toString()}
-                      </p>
-                    )}
-                  </div>
-
-                  <Separator />
-
-                  <div>
-                    <h3 className="font-semibold mb-2">Service</h3>
-                    <p className="text-lg">{selectedBooking.booking.serviceCategory}</p>
-                  </div>
-
-                  <Separator />
-
-                  <div>
-                    <h3 className="font-semibold mb-2 flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-primary" />
-                      Service Address
-                    </h3>
-                    <p className="text-sm text-muted-foreground">{selectedBooking.booking.address}</p>
-                  </div>
-
-                  <Separator />
-
-                  <div>
-                    <h3 className="font-semibold mb-2 flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-primary" />
-                      Scheduled Time
-                    </h3>
-                    <p className="text-sm">
-                      {format(Number(selectedBooking.booking.timeWindow.start) / 1_000_000, 'EEEE, MMMM d, yyyy')}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {format(Number(selectedBooking.booking.timeWindow.start) / 1_000_000, 'h:mm a')} - {format(Number(selectedBooking.booking.timeWindow.end) / 1_000_000, 'h:mm a')}
-                    </p>
-                  </div>
-
-                  <Separator />
-
-                  <div>
-                    <h3 className="font-semibold mb-2 flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-primary" />
-                      Contact Information
-                    </h3>
-                    <p className="text-sm text-muted-foreground">{selectedBooking.booking.contactInfo}</p>
-                  </div>
-
-                  {selectedBooking.booking.notes && (
+              <div className="mt-6 space-y-6">
+                <div>
+                  <h3 className="font-semibold mb-2 flex items-center gap-2">
+                    <User className="h-4 w-4 text-primary" />
+                    Customer
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {getCustomerDisplay(selectedBooking)}
+                  </p>
+                  {selectedBooking.customerProfile && (
                     <>
-                      <Separator />
-                      <div>
-                        <h3 className="font-semibold mb-2 flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-primary" />
-                          Special Instructions
-                        </h3>
-                        <p className="text-sm text-muted-foreground">{selectedBooking.booking.notes}</p>
-                      </div>
-                    </>
-                  )}
-
-                  <Separator />
-
-                  <div>
-                    <h3 className="font-semibold mb-2 flex items-center gap-2">
-                      <Star className="h-4 w-4 text-primary" />
-                      Review Status
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Review feature will be available once backend adds 'completed' status
-                    </p>
-                  </div>
-
-                  <Separator />
-
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-muted-foreground mb-1">Created</p>
-                      <p className="font-medium">
-                        {format(Number(selectedBooking.booking.createdAt) / 1_000_000, 'MMM d, yyyy h:mm a')}
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Email: {selectedBooking.customerProfile.email}
                       </p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground mb-1">Last Updated</p>
-                      <p className="font-medium">
-                        {format(Number(selectedBooking.booking.updatedAt) / 1_000_000, 'MMM d, yyyy h:mm a')}
-                      </p>
-                    </div>
-                  </div>
-
-                  {selectedBooking.booking.status === BookingStatus.pending && (
-                    <>
-                      <Separator />
-                      <Button
-                        className="w-full"
-                        onClick={() => {
-                          handleComplete(selectedBooking.booking.id);
-                          setSelectedBooking(null);
-                        }}
-                        disabled={isCompleting}
-                      >
-                        {isCompleting ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Completing...
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Mark as Completed
-                          </>
-                        )}
-                      </Button>
-                      <p className="text-xs text-center text-muted-foreground">
-                        Note: Backend support for 'completed' status is pending
+                      <p className="text-xs text-muted-foreground">
+                        Phone: {selectedBooking.customerProfile.phone}
                       </p>
                     </>
                   )}
                 </div>
-              </>
-            )}
-          </SheetContent>
-        </Sheet>
-      </div>
+
+                <Separator />
+
+                <div>
+                  <h3 className="font-semibold mb-2">Service</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedBooking.booking.serviceCategory}
+                  </p>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h3 className="font-semibold mb-2 flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    Location
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedBooking.booking.address}
+                  </p>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h3 className="font-semibold mb-2 flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    Scheduled Time
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {format(Number(selectedBooking.booking.timeWindow.start) / 1_000_000, 'EEEE, MMMM d, yyyy')}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {format(Number(selectedBooking.booking.timeWindow.start) / 1_000_000, 'h:mm a')} - {format(Number(selectedBooking.booking.timeWindow.end) / 1_000_000, 'h:mm a')}
+                  </p>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h3 className="font-semibold mb-2 flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-primary" />
+                    Contact
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedBooking.booking.contactInfo}
+                  </p>
+                </div>
+
+                {selectedBooking.booking.notes && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h3 className="font-semibold mb-2 flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-primary" />
+                        Notes
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedBooking.booking.notes}
+                      </p>
+                    </div>
+                  </>
+                )}
+
+                <Separator />
+
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <p>Created: {format(Number(selectedBooking.booking.createdAt) / 1_000_000, 'MMM d, yyyy h:mm a')}</p>
+                  <p>Updated: {format(Number(selectedBooking.booking.updatedAt) / 1_000_000, 'MMM d, yyyy h:mm a')}</p>
+                </div>
+
+                {selectedBooking.booking.status === BookingStatus.pending && (
+                  <>
+                    <Separator />
+                    <Button
+                      className="w-full"
+                      onClick={() => {
+                        handleComplete(selectedBooking.booking.id);
+                        setSelectedBooking(null);
+                      }}
+                      disabled={isCompleting}
+                    >
+                      {isCompleting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Completing...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          Mark as Complete
+                        </>
+                      )}
+                    </Button>
+                  </>
+                )}
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

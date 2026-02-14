@@ -1,14 +1,14 @@
 # Specification
 
 ## Summary
-**Goal:** Add a simple admin dashboard and supporting APIs so an authenticated admin can track all customers’ bookings (with status, customer info, and address) and reviews, and can mark bookings as completed.
+**Goal:** Add an optional customer name to the chat-based booking flow and persist/display it with bookings.
 
 **Planned changes:**
-- Add admin-only backend APIs to list all bookings (not just the caller’s), with filtering/splitting by status and including booking details, owner principal/profile (if available), and address.
-- Add admin-only backend API to mark a pending booking as completed (reject completing cancelled bookings).
-- Add backend support for reviews tied to a booking: booking owner can create a rating (1–5) + comment only after completion; admin can fetch reviews across bookings (and/or by bookingId).
-- Add a new Admin Dashboard route (e.g., `/admin`) that shows separate Pending and Completed booking lists (optionally Cancelled), with customer identifier and address, and a simple booking details view including review data when present.
-- Add admin UI actions to mark a pending booking as completed, including loading/error states and automatic list refresh.
-- Add a minimal customer review submission UI for booking owners on completed bookings, with loading/error handling and read-only display after submission.
+- Update the chat-based “new booking” flow to prompt for an optional customer name and allow skipping.
+- Include the provided name (or null/empty when skipped) in the in-progress booking draft and in the booking confirmation/summary step.
+- Extend the backend Booking data model to store an optional customer name and update the createBooking API to accept and persist it.
+- Update read APIs to return the optional customer name and ensure existing bookings continue to load with name defaulting to null/empty.
+- Update frontend API bindings/mutations to send the optional customer name when creating a booking.
+- Display the stored customer name in the Booking Details screen and Admin Dashboard booking details panel with graceful fallback when missing.
 
-**User-visible outcome:** Admin users can open an easy-to-access dashboard to view all bookings by status, see customer identifiers and addresses, review status/details per booking, and mark pending bookings as completed; customers can submit a simple rating and comment for their completed bookings.
+**User-visible outcome:** Users can optionally provide their name during a new booking chat; if provided it is saved with the booking and shown in booking details (including admin views), and if skipped the booking still completes normally.

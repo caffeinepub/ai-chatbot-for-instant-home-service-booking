@@ -7,9 +7,11 @@ import Iter "mo:core/Iter";
 import Set "mo:core/Set";
 import Runtime "mo:core/Runtime";
 import Migration "migration";
+
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
+// Use data migration function specified in with-clause
 (with migration = Migration.run)
 actor {
   // Access Control
@@ -73,6 +75,7 @@ actor {
   type Booking = {
     id : Nat;
     user : Principal;
+    name : ?Text; // Optional name field
     serviceCategory : Text;
     address : Text;
     timeWindow : TimeWindow;
@@ -129,6 +132,7 @@ actor {
 
   // Create Booking
   public shared ({ caller }) func createBooking(
+    name : ?Text,
     serviceCategory : Text,
     address : Text,
     timeWindow : TimeWindow,
@@ -145,6 +149,7 @@ actor {
     let newBooking : Booking = {
       id = bookingId;
       user = caller;
+      name; // Assign provided optional name
       serviceCategory;
       address;
       timeWindow;
@@ -201,6 +206,7 @@ actor {
         let updatedBooking : Booking = {
           id = booking.id;
           user = booking.user;
+          name = booking.name;
           serviceCategory = booking.serviceCategory;
           address = booking.address;
           timeWindow = booking.timeWindow;
@@ -235,6 +241,7 @@ actor {
         let updatedBooking : Booking = {
           id = booking.id;
           user = booking.user;
+          name = booking.name;
           serviceCategory = booking.serviceCategory;
           address = booking.address;
           timeWindow = newTimeWindow;

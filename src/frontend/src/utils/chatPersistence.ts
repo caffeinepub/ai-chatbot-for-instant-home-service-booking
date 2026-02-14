@@ -1,7 +1,7 @@
 import type { ConversationState } from '../chat/types';
 
 const STORAGE_KEY = 'servicebot_conversation';
-const VERSION = '2.0'; // Bumped version for new fields
+const VERSION = '3.0'; // Bumped version for customerName field
 
 interface StoredConversation {
   version: string;
@@ -29,16 +29,20 @@ export function loadConversation(): ConversationState | null {
 
     const parsed: StoredConversation = JSON.parse(stored);
     
-    // Check version compatibility - allow migration from 1.0 to 2.0
+    // Check version compatibility - allow migration from older versions
     if (parsed.version !== VERSION) {
-      if (parsed.version === '1.0') {
-        // Migrate from 1.0 to 2.0 by adding new fields
+      if (parsed.version === '1.0' || parsed.version === '2.0') {
+        // Migrate from older versions by adding new fields
         const migratedState: ConversationState = {
           ...parsed.state,
-          activeIntent: null,
-          detectedLanguage: undefined,
-          targetBookingId: undefined,
-          rescheduleTime: undefined,
+          activeIntent: parsed.state.activeIntent || null,
+          detectedLanguage: parsed.state.detectedLanguage || undefined,
+          targetBookingId: parsed.state.targetBookingId || undefined,
+          rescheduleTime: parsed.state.rescheduleTime || undefined,
+          draft: {
+            ...parsed.state.draft,
+            customerName: parsed.state.draft?.customerName || undefined,
+          },
         };
         return migratedState;
       }

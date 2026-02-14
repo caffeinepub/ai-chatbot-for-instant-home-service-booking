@@ -1,134 +1,93 @@
 {
   "kind": "build_request",
-  "title": "Add simple admin dashboard to track all customers, booking progress, reviews, and customer locations",
+  "title": "Add optional customer name field to booking flow and persist it with bookings",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-14",
-      "text": "Add backend admin APIs to support tracking all customers and all bookings (not just the caller’s bookings), including the ability to filter by booking status (pending/completed/cancelled) and to view the customer (Principal + profile if available) and location (address) for each booking.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-3"
-        ],
-        "quotes": [
-          "at last create me a website where i can use this chat bot and track all customers progress and reviews and locations of customer and the completes bookings and pending booking keep it simple and easy to acess"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A caller who is an admin can fetch a list of all bookings.",
-        "The list can be filtered by status at the API level or returned with enough data for the UI to split into Pending vs Completed vs Cancelled.",
-        "Each returned booking includes: id, status, createdAt, updatedAt, serviceCategory, address, timeWindow, and the booking owner principal.",
-        "Non-admin callers cannot access these admin-only APIs (must trap/deny)."
-      ]
-    },
-    {
-      "id": "REQ-15",
-      "text": "Add backend support for marking a booking as completed, restricted to admin callers.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-3"
-        ],
-        "quotes": [
-          "track all customers progress ... and the completes bookings and pending booking"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Admin can update a booking’s status from pending to completed.",
-        "Updating to completed sets updatedAt to the current time.",
-        "Attempting to complete a cancelled booking is rejected.",
-        "Non-admin callers cannot mark bookings as completed."
-      ]
-    },
-    {
-      "id": "REQ-16",
-      "text": "Add backend support for customer reviews tied to a booking, including creating a review by the booking owner and fetching reviews for admin tracking.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-3"
-        ],
-        "quotes": [
-          "track all customers progress and reviews"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A booking owner can submit a review for their booking with at least: rating (1–5) and a text comment.",
-        "A review can only be created for an existing booking owned by the caller.",
-        "A review can only be created when the booking status is completed.",
-        "Admin can fetch reviews across all bookings (and/or fetch review by bookingId).",
-        "Non-admin callers cannot fetch all customers’ reviews (they may fetch only their own booking’s review if implemented)."
-      ]
-    },
-    {
-      "id": "REQ-17",
-      "text": "Create a simple, easy-to-access Admin Dashboard screen in the frontend that lets an authenticated admin track all bookings and customer progress, showing at minimum: Pending bookings list, Completed bookings list, and basic customer location (address) and review status for each booking.",
+      "id": "REQ-20",
+      "text": "Add an optional customer name field to the chat-based booking flow so the bot asks for the customer’s name during new bookings and allows the user to skip it.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-3"
+          "msg-6"
         ],
         "quotes": [
-          "create me a website where i can use this chat bot and track all customers progress and reviews and locations of customer and the completes bookings and pending booking keep it simple and easy to acess"
+          "CAN YOU ADD OPTION FOR NAME"
         ]
       },
       "acceptanceCriteria": [
-        "A new route exists for an Admin Dashboard (e.g., /admin).",
-        "Non-admin users attempting to access the Admin Dashboard see a clear access-denied message in English.",
-        "The Admin Dashboard shows separate sections/tabs for Pending and Completed bookings (and may include Cancelled as an additional section).",
-        "Each booking row shows: service category, status, scheduled time window, customer address (location), and customer identifier (principal or profile name if available).",
-        "Selecting a booking opens a simple details view/panel that includes the booking fields plus review data (if available)."
+        "During the 'new booking' flow, the bot prompts the user for their name with clear instructions that it is optional and can be skipped.",
+        "If the user skips, the booking flow continues normally without a name.",
+        "If the user provides a name, it is stored in the in-progress booking draft and included in the booking summary/confirmation step.",
+        "All user-facing text added/updated for this feature is in English."
       ]
     },
     {
-      "id": "REQ-18",
-      "text": "Add admin actions in the frontend Admin Dashboard to mark a pending booking as completed, with loading/error states and automatic refresh of the admin booking lists.",
-      "target": "frontend",
+      "id": "REQ-21",
+      "text": "Persist the optional customer name with each booking in the backend by extending the Booking data model and the createBooking API to accept and store an optional name.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-3"
+          "msg-6"
         ],
         "quotes": [
-          "completes bookings and pending booking"
+          "CAN YOU ADD OPTION FOR NAME"
         ]
       },
       "acceptanceCriteria": [
-        "Admin can click an action (e.g., “Mark Completed”) on a pending booking.",
-        "While the mutation is in-flight, the UI shows a loading state and prevents duplicate submissions.",
-        "On success, the booking moves from Pending to Completed without a full page reload (query invalidation/refetch is acceptable).",
-        "On failure, the UI shows an error message and offers retry."
+        "The backend Booking record includes a field to store an optional customer name.",
+        "The createBooking method accepts an optional name parameter and stores it with the booking.",
+        "Existing read APIs (getMyBookings, getBookingDetails, and admin-facing booking queries if present) return the customer name field as part of the booking data.",
+        "If there are existing stored bookings, they continue to load successfully after the change, with customer name defaulting to null/empty for pre-existing records (use a state migration only if required by the current stable storage strategy)."
       ]
     },
     {
-      "id": "REQ-19",
-      "text": "Add a simple customer review submission UI for authenticated users so reviews can be captured and later tracked by admin (keep it minimal and easy to use).",
+      "id": "REQ-22",
+      "text": "Update frontend API bindings and booking mutations to send the optional customer name to the backend when creating a booking.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-3"
+          "msg-6"
         ],
         "quotes": [
-          "track ... reviews"
+          "CAN YOU ADD OPTION FOR NAME"
         ]
       },
       "acceptanceCriteria": [
-        "On the Booking Details screen (or another appropriate existing booking UI), if the booking status is completed and the caller is the booking owner, the user can submit a rating (1–5) and comment.",
-        "After submission, the review is displayed as read-only for that booking.",
-        "The UI handles signed-out state gracefully (no review submission shown when signed out).",
-        "The UI shows loading and error states for review submission."
+        "When a booking is created from the chat flow, the frontend passes the optional customer name value (or null/empty when skipped) to the backend createBooking call.",
+        "The app still successfully creates bookings when the name is omitted.",
+        "TypeScript types remain consistent with the generated backend bindings (no type errors in the booking creation flow)."
+      ]
+    },
+    {
+      "id": "REQ-23",
+      "text": "Display the stored customer name where booking details are shown in the UI (at minimum: Booking Details screen; Admin Dashboard booking details panel), with graceful fallback when the name is missing.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "CAN YOU ADD OPTION FOR NAME"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Booking Details screen shows the customer name if present on the booking; if not present, it does not show an empty/placeholder field.",
+        "Admin Dashboard booking details sheet shows the customer name if present (prefer showing the booking’s stored name; fall back to user profile name if that is the existing pattern, then fall back to principal short form).",
+        "UI does not break for existing bookings that have no stored name."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo; add migration logic in backend/migration.mo only if existing stable state must be upgraded.",
-    "Do not edit files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui; compose existing components instead.",
-    "Do not add external databases, third-party auth providers, maps/GPS integrations, or external review services."
+    "Backend must remain a single-actor Motoko canister (all logic in backend/main.mo).",
+    "Do not edit files under frontend/src/components/ui (compose them only).",
+    "Do not modify immutable frontend hook/bootstrap files listed in SYSTEM_CONTEXT.frontend.immutablePaths.",
+    "Do not add SMS/email sending; external messaging is out of platform scope."
   ],
   "nonGoals": [
-    "Real-time/live updating dashboards (no WebSockets).",
-    "Displaying customer locations on an interactive map (address text display only).",
-    "Advanced analytics, charts, or export/reporting features beyond the simple lists requested."
+    "Implementing SMS or email booking confirmations.",
+    "Adding third-party authentication providers (only Internet Identity is supported).",
+    "Building advanced NLP/LLM-based name extraction from free text beyond the existing deterministic approach."
   ],
   "imageRequirements": {
     "required": [],

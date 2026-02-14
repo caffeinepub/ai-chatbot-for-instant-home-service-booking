@@ -4,6 +4,7 @@ import type { TimeWindow } from '../backend';
 import { toast } from 'sonner';
 
 interface CreateBookingParams {
+  name?: string;
   serviceCategory: string;
   address: string;
   timeWindow: TimeWindow;
@@ -18,7 +19,9 @@ export function useCreateBooking() {
   return useMutation({
     mutationFn: async (params: CreateBookingParams) => {
       if (!actor) throw new Error('Actor not available');
+      // Backend expects: name (optional), serviceCategory, address, timeWindow, contactInfo, notes
       const bookingId = await actor.createBooking(
+        params.name || null,
         params.serviceCategory,
         params.address,
         params.timeWindow,

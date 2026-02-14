@@ -16,6 +16,7 @@ export interface Booking {
     status: BookingStatus;
     serviceCategory: string;
     contactInfo: string;
+    name?: string;
     createdAt: Time;
     user: Principal;
     updatedAt: Time;
@@ -41,7 +42,7 @@ export enum UserRole {
 export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     cancelBooking(bookingId: bigint): Promise<void>;
-    createBooking(serviceCategory: string, address: string, timeWindow: TimeWindow, contactInfo: string, notes: string): Promise<bigint>;
+    createBooking(name: string | null, serviceCategory: string, address: string, timeWindow: TimeWindow, contactInfo: string, notes: string): Promise<bigint>;
     getBookingDetails(bookingId: bigint): Promise<Booking>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;

@@ -1,10 +1,11 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 7,
+  "projectStateVersion": 9,
   "summary": "Extend the home service booking chatbot into a simple web experience that embeds/uses the chatbot and adds an admin-style dashboard to track customer/bookings progress, reviews, and customer locations, including views for pending vs completed bookings.",
   "architectural_notes": [
     "Platform constraint: no external AI/NLP APIs; implement multilingual support via deterministic/rule-based language detection, intent classification, and entity extraction on the existing stack.",
-    "Add a simple web dashboard surface (separate from the end-user chat flow) for operational tracking: bookings status (pending/completed), customer info/location, and reviews."
+    "Add a simple web dashboard surface (separate from the end-user chat flow) for operational tracking: bookings status (pending/completed), customer info/location, and reviews.",
+    "External notifications constraint: SMS confirmations are not supported; email confirmations are unavailable unless account/platform enables email (e.g., paid plan). Confirmations should be shown in-chat/in-app instead."
   ],
   "known_issues": [],
   "isFixRequest": false,
@@ -120,6 +121,30 @@
         "REQ-19"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-an-optional-customer-name-field-to-the-chat-based-booking-flow-so-the-bot-asks-for-the-customer-s-name-during-new-bookings-and-allows-the-user-to-skip-it",
+      "title": "Add an optional customer name field to the chat-based booking flow so the bot asks for the customer’s name during new bookings and allows the user to skip it.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-frontend-api-bindings-and-booking-mutations-to-send-the-optional-customer-name-to-the-backend-when-creating-a-booking",
+      "title": "Update frontend API bindings and booking mutations to send the optional customer name to the backend when creating a booking.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-display-the-stored-customer-name-where-booking-details-are-shown-in-the-ui-at-minimum-booking-details-screen-admin-dashboard-booking-details-panel-with-graceful-fallback-when-the-name-is-missing",
+      "title": "Display the stored customer name where booking details are shown in the UI (at minimum: Booking Details screen; Admin Dashboard booking details panel), with graceful fallback when the name is missing.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -196,6 +221,26 @@
       "summary": "Add backend support for customer reviews tied to a booking, including creating a review by the booking owner and fetching reviews for admin tracking.",
       "reqIds": [
         "REQ-16"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Add a customer name field to the booking flow (UI + stored with booking) so users can optionally/provide their name during booking and it appears in booking details/admin dashboard.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Provide clearer in-chat/in-app booking confirmation messaging (since external SMS/email confirmations are not available on this platform/account).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Persist the optional customer name with each booking in the backend by extending the Booking data model and the createBooking API to accept and store an optional name.",
+      "reqIds": [
+        "REQ-21"
       ],
       "status": "pending"
     }

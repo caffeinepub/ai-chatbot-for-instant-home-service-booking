@@ -141,6 +141,8 @@ function handleNewBookingFlow(state: ConversationState, input: string, serviceCa
   switch (state.step) {
     case 'service-selection':
       return handleServiceSelection(state, input, serviceCategories);
+    case 'customer-name':
+      return handleCustomerName(state, input);
     case 'address':
       return handleAddress(state, input);
     case 'time-window':
@@ -209,18 +211,19 @@ function handleNonBookingFlow(state: ConversationState, input: string): Conversa
 
 function transitionToServiceSelection(state: ConversationState, serviceCategories: string[], preselectedCategory?: string): ConversationState {
   if (preselectedCategory) {
-    // Service category already extracted, confirm and move to address
+    // Service category already extracted, confirm and move to customer name
     return {
       ...state,
-      step: 'address',
+      step: 'customer-name',
       draft: { ...state.draft, serviceCategory: preselectedCategory },
       messages: [
         ...state.messages,
         {
           id: crypto.randomUUID(),
           role: 'bot',
-          content: `Great! I detected you need ${preselectedCategory} service. What's the service address?`,
+          content: `Great! I detected you need ${preselectedCategory} service. May I have your name? (You can type "Skip" if you prefer not to share)`,
           timestamp: Date.now(),
+          quickReplies: ['Skip'],
         },
       ],
     };
@@ -255,15 +258,39 @@ function handleServiceSelection(state: ConversationState, input: string, service
     );
   }
 
+  return {
+    ...state,
+    step: 'customer-name',
+    draft: { ...state.draft, serviceCategory: selectedService },
+    messages: [
+      ...state.messages,
+      {
+        id: crypto.randomUUID(),
+        role: 'bot',
+        content: `Great! You've selected ${selectedService}. May I have your name? (You can type "Skip" if you prefer not to share)`,
+        timestamp: Date.now(),
+        quickReplies: ['Skip'],
+      },
+    ],
+  };
+}
+
+function handleCustomerName(state: ConversationState, input: string): ConversationState {
+  const trimmedInput = input.trim();
+  const isSkip = trimmedInput.toLowerCase() === 'skip';
+  
+  // Store name if provided, otherwise leave undefined
+  const customerName = isSkip ? undefined : trimmedInput;
+  
   // Check if address already extracted
   const nextMessage = state.draft.address
-    ? `Great! You've selected ${selectedService}. I have your address as: ${state.draft.address}. Is this correct? (yes/no)`
-    : `Great! You've selected ${selectedService}. What's the service address?`;
+    ? `${isSkip ? 'No problem!' : `Nice to meet you, ${customerName}!`} I have your address as: ${state.draft.address}. Is this correct? (yes/no)`
+    : `${isSkip ? 'No problem!' : `Nice to meet you, ${customerName}!`} What's the service address?`;
 
   return {
     ...state,
     step: 'address',
-    draft: { ...state.draft, serviceCategory: selectedService },
+    draft: { ...state.draft, customerName },
     messages: [
       ...state.messages,
       {

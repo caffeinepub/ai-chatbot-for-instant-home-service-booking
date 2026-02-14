@@ -1,87 +1,74 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-13T21:43:23.035Z",
-  "summary": "Frontend routing and UI scaffolding for an Admin Dashboard and review section were added, along with some new backend data types (reviews, customer info) and migration scaffolding. However, the core backend admin APIs, booking completion support, and functional review APIs are not implemented (or not evidenced in the diff), and the frontend hooks/mutations are placeholders that currently return empty data or throw “not yet implemented” errors.",
+  "generatedAt": "2026-02-14T00:13:45.389Z",
+  "summary": "Diff adds an optional name field to the backend Booking model (with a stable-state migration) and updates the createBooking signature; frontend types and the create-booking hook were updated to pass an optional name parameter. However, evidence is incomplete/truncated for (a) chat flow prompting/skip handling, (b) wiring customerName from the chat draft into the createBooking mutation, and (c) displaying the stored name in Booking Details and Admin UI panels, as well as ensuring read APIs return the new field.",
   "missing_requirements": [
     {
-      "id": "REQ-14",
-      "requirement": "Add backend admin APIs to fetch all bookings (not just caller’s), support filtering by status (pending/completed/cancelled), include booking fields (id, status, createdAt, updatedAt, serviceCategory, address, timeWindow, owner principal), and deny non-admin callers.",
-      "reason": "No implemented backend method is shown for admin to fetch all bookings or filter by status; frontend hook explicitly logs that getAllBookings() is not implemented and returns an empty array. Also, backend BookingStatus currently lacks a #completed variant, so completed filtering/return is not supported.",
+      "id": "REQ-20",
+      "requirement": "Add an optional customer name field to the chat-based booking flow so the bot asks for the customer’s name during new bookings and allows the user to skip it; store it in draft and include it in confirmation.",
+      "reason": "ConversationStep and draft types were extended to include a customer-name step and customerName field, but the provided diff snippet of the state machine does not show the actual prompt text/skip path/confirmation inclusion logic. The file is truncated before any customer-name handling is visible.",
       "evidence": [
-        "frontend/src/hooks/useAdminBookings.ts (returns [] and warns getAllBookings() not yet implemented)",
-        "backend/main.mo (BookingStatus only #pending/#cancelled; no #completed shown; no admin list API shown in truncated content)"
+        "frontend/src/chat/types.ts",
+        "frontend/src/chat/bookingStateMachine.ts (truncated)"
       ]
     },
     {
-      "id": "REQ-15",
-      "requirement": "Add backend support for marking a booking as completed, restricted to admin callers; set updatedAt to now; reject completing cancelled bookings; deny non-admin callers.",
-      "reason": "No backend complete-booking API is evidenced, and BookingStatus does not include #completed. The frontend mutation explicitly warns completeBooking() is not implemented and throws an error.",
+      "id": "REQ-21",
+      "requirement": "Existing read APIs (getMyBookings, getBookingDetails, admin-facing booking queries if present) return the customer name field as part of the booking data.",
+      "reason": "Backend Booking type and createBooking signature were updated, but the diff excerpt does not show updates (or lack thereof) to getMyBookings/getBookingDetails/admin booking query return shapes. Since those functions are not visible in the truncated backend diff, this cannot be confirmed from the provided evidence.",
       "evidence": [
-        "frontend/src/hooks/useCompleteBooking.ts (throws 'Complete booking functionality not yet available' and warns completeBooking() not implemented)",
-        "backend/main.mo (BookingStatus only #pending/#cancelled; no completion logic shown)"
+        "backend/main.mo (truncated)"
       ]
     },
     {
-      "id": "REQ-16",
-      "requirement": "Add backend support for reviews tied to a booking: owner can submit rating (1–5) + comment only for their own booking and only when status is completed; admin can fetch reviews across all bookings (or by bookingId); non-admin cannot fetch all reviews.",
-      "reason": "While review types/storage are added, no backend review creation/fetch APIs are evidenced in the diff. Frontend review hooks explicitly state submitReview/getReviewForBooking are not implemented and currently do not work. Also, booking completion status required for review gating is missing (#completed not present).",
+      "id": "REQ-22",
+      "requirement": "When a booking is created from the chat flow, the frontend passes the optional customer name value (or null/empty when skipped) to the backend createBooking call.",
+      "reason": "The mutation hook accepts a name parameter and sends it to actor.createBooking, but the diff does not show the chat booking flow mapping draft.customerName into useCreateBooking({ name: ... }). ChatBookingScreen is truncated before the booking creation/confirmation submission logic is shown.",
       "evidence": [
-        "backend/main.mo (adds Review type and reviews map, but no API methods shown in truncated content)",
-        "frontend/src/hooks/useBookingReview.ts (getReviewForBooking() and submitReview() both TODO / not implemented; submission throws 'Review submission not yet available')",
-        "backend/main.mo (BookingStatus lacks #completed)"
+        "frontend/src/hooks/useCreateBooking.ts",
+        "frontend/src/chat/types.ts",
+        "frontend/src/screens/ChatBookingScreen.tsx (truncated)"
       ]
     },
     {
-      "id": "REQ-17",
-      "requirement": "Admin Dashboard should show pending and completed bookings (optionally cancelled), with address/location and review status per booking; booking selection opens details panel including review data.",
-      "reason": "Route and access-denied handling are implemented, but the bookings data source is currently always empty (useAdminBookings returns []). Without backend support, the dashboard cannot actually list pending/completed bookings, show review status, or show real booking details/review data.",
+      "id": "REQ-23",
+      "requirement": "Display the stored customer name where booking details are shown in the UI (Booking Details screen; Admin Dashboard booking details panel) with graceful fallback when missing.",
+      "reason": "Both BookingDetailsScreen and AdminDashboardScreen diffs are truncated and do not show any UI rendering of booking.name/customer name. No visible evidence confirms conditional display/fallback behavior.",
       "evidence": [
-        "frontend/src/App.tsx (adds /admin route)",
-        "frontend/src/screens/AdminDashboardScreen.tsx (access denied + UI scaffolding; content truncated)",
-        "frontend/src/hooks/useAdminBookings.ts (returns empty list; backend method not implemented)"
-      ]
-    },
-    {
-      "id": "REQ-18",
-      "requirement": "Admin Dashboard action to mark pending booking as completed with loading/error states and refresh (move from Pending to Completed without full reload).",
-      "reason": "Hook exists but the mutation always throws 'not yet available' because backend method is not implemented. Therefore the action cannot succeed or trigger the pending→completed move in practice.",
-      "evidence": [
-        "frontend/src/hooks/useCompleteBooking.ts (always throws; TODO to call actor.completeBooking)"
-      ]
-    },
-    {
-      "id": "REQ-19",
-      "requirement": "Minimal review submission UI for authenticated users on booking details when booking is completed and caller is owner; after submission show read-only; handle signed-out state; show loading/error states.",
-      "reason": "BookingDetails screen explicitly disables reviews (canReview = false) with a note that it will be enabled once backend adds 'completed' status. The submit hook also throws 'Review submission not yet available', so the UI cannot function as required.",
-      "evidence": [
-        "frontend/src/screens/BookingDetailsScreen.tsx (canReview = false; 'will be enabled once backend adds completed status')",
-        "frontend/src/hooks/useBookingReview.ts (submitReview throws 'Review submission not yet available')"
+        "frontend/src/screens/BookingDetailsScreen.tsx (truncated)",
+        "frontend/src/screens/AdminDashboardScreen.tsx (truncated)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Customer loyalty tiering and tracking (bronze/silver/gold), including CustomerInfo and CustomerLoyalty structures and booking/review counts.",
-      "reason": "The BuildRequest focuses on admin tracking of customers/bookings/reviews and basic location display; it does not request loyalty tiers or loyalty analytics structures.",
+      "description": "Added/changed welcome message to include emoji and multilingual support messaging (English/Hindi/Hinglish).",
+      "reason": "BuildRequest is specifically about adding an optional customer name field; expanding/altering welcome copy and language claims is not requested and may conflict with the requirement that new/updated user-facing text for this feature be in English.",
       "evidence": [
-        "backend/main.mo (adds LoyaltyTier, CustomerLoyalty, CustomerInfo, userBookingCounts)"
+        "frontend/src/chat/bookingStateMachine.ts (welcome message content in diff)"
+      ]
+    },
+    {
+      "description": "Added localStorage conversation schema version bump and migration logic for customerName field.",
+      "reason": "Not explicitly requested by the BuildRequest requirements (though it is related); this is additional functionality beyond the specified frontend/backend requirements.",
+      "evidence": [
+        "frontend/src/utils/chatPersistence.ts"
       ]
     }
   ],
-  "confidence": 0.78,
+  "confidence": 0.62,
   "changed_files": [
     "backend/main.mo",
     "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/components/layout/AppHeader.tsx",
-    "frontend/src/hooks/useAdminBookings.ts",
-    "frontend/src/hooks/useBookingReview.ts",
-    "frontend/src/hooks/useCompleteBooking.ts",
-    "frontend/src/hooks/useIsAdmin.ts",
+    "frontend/src/chat/bookingStateMachine.ts",
+    "frontend/src/chat/types.ts",
+    "frontend/src/hooks/useCreateBooking.ts",
     "frontend/src/screens/AdminDashboardScreen.tsx",
     "frontend/src/screens/BookingDetailsScreen.tsx",
+    "frontend/src/screens/ChatBookingScreen.tsx",
+    "frontend/src/utils/chatPersistence.ts",
     "project_state.json"
   ]
 }

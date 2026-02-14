@@ -1,48 +1,50 @@
 import Map "mo:core/Map";
 import Nat "mo:core/Nat";
-import Iter "mo:core/Iter";
-import Time "mo:core/Time";
 import Principal "mo:core/Principal";
+import Time "mo:core/Time";
 
 module {
-  type TimeWindow = {
-    start : Time.Time;
-    end : Time.Time;
-  };
-
   type OldBooking = {
     id : Nat;
-    user : Principal.Principal;
+    user : Principal;
     serviceCategory : Text;
     address : Text;
-    timeWindow : TimeWindow;
+    timeWindow : {
+      start : Time.Time;
+      end : Time.Time;
+    };
     contactInfo : Text;
     notes : Text;
-    status : Text;
-    createdAt : Time.Time;
-    updatedAt : Time.Time;
-  };
-
-  type BookingStatus = {
-    #pending;
-    #cancelled;
-  };
-
-  type NewBooking = {
-    id : Nat;
-    user : Principal.Principal;
-    serviceCategory : Text;
-    address : Text;
-    timeWindow : TimeWindow;
-    contactInfo : Text;
-    notes : Text;
-    status : BookingStatus;
+    status : {
+      #pending;
+      #cancelled;
+    };
     createdAt : Time.Time;
     updatedAt : Time.Time;
   };
 
   type OldActor = {
     bookings : Map.Map<Nat, OldBooking>;
+  };
+
+  type NewBooking = {
+    id : Nat;
+    user : Principal;
+    name : ?Text; // New optional name field
+    serviceCategory : Text;
+    address : Text;
+    timeWindow : {
+      start : Time.Time;
+      end : Time.Time;
+    };
+    contactInfo : Text;
+    notes : Text;
+    status : {
+      #pending;
+      #cancelled;
+    };
+    createdAt : Time.Time;
+    updatedAt : Time.Time;
   };
 
   type NewActor = {
@@ -52,16 +54,9 @@ module {
   public func run(old : OldActor) : NewActor {
     let newBookings = old.bookings.map<Nat, OldBooking, NewBooking>(
       func(_id, oldBooking) {
-        { oldBooking with status = convertStatus(oldBooking.status) };
+        { oldBooking with name = null };
       }
     );
     { bookings = newBookings };
-  };
-
-  func convertStatus(status : Text) : BookingStatus {
-    switch (status) {
-      case ("pending") { #pending };
-      case _ { #cancelled };
-    };
   };
 };

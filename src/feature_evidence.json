@@ -2,14 +2,13 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-create-a-simple-easy-to-access-admin-dashboard-screen-in-the-frontend-that-lets-an-authenticated-admin-track-all-bookings-and-customer-progress-showing-at-minimum-pending-bookings-list-completed-bookings-list-and-basic-customer-location-address-and-review-status-for-each-booking",
-      "featureTitle": "Create a simple, easy-to-access Admin Dashboard screen in the frontend that lets an authenticated admin track all bookings and customer progress, showing at minimum: Pending bookings list, Completed bookings list, and basic customer location (address) and review status for each booking.",
+      "featureId": "feature-add-an-optional-customer-name-field-to-the-chat-based-booking-flow-so-the-bot-asks-for-the-customer-s-name-during-new-bookings-and-allows-the-user-to-skip-it",
+      "featureTitle": "Add an optional customer name field to the chat-based booking flow so the bot asks for the customer’s name during new bookings and allows the user to skip it.",
       "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/layout/AppHeader.tsx",
-        "frontend/src/hooks/useAdminBookings.ts",
-        "frontend/src/hooks/useIsAdmin.ts",
-        "frontend/src/screens/AdminDashboardScreen.tsx"
+        "frontend/src/chat/bookingStateMachine.ts",
+        "frontend/src/chat/types.ts",
+        "frontend/src/screens/ChatBookingScreen.tsx",
+        "frontend/src/utils/chatPersistence.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -20,16 +19,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-17"
+        "REQ-20"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-admin-actions-in-the-frontend-admin-dashboard-to-mark-a-pending-booking-as-completed-with-loading-error-states-and-automatic-refresh-of-the-admin-booking-lists",
-      "featureTitle": "Add admin actions in the frontend Admin Dashboard to mark a pending booking as completed, with loading/error states and automatic refresh of the admin booking lists.",
+      "featureId": "feature-update-frontend-api-bindings-and-booking-mutations-to-send-the-optional-customer-name-to-the-backend-when-creating-a-booking",
+      "featureTitle": "Update frontend API bindings and booking mutations to send the optional customer name to the backend when creating a booking.",
       "files": [
-        "frontend/src/hooks/useCompleteBooking.ts",
-        "frontend/src/screens/AdminDashboardScreen.tsx"
+        "frontend/src/hooks/useCreateBooking.ts",
+        "frontend/src/screens/ChatBookingScreen.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -40,15 +39,14 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-18"
+        "REQ-22"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-simple-customer-review-submission-ui-for-authenticated-users-so-reviews-can-be-captured-and-later-tracked-by-admin-keep-it-minimal-and-easy-to-use",
-      "featureTitle": "Add a simple customer review submission UI for authenticated users so reviews can be captured and later tracked by admin (keep it minimal and easy to use).",
+      "featureId": "feature-display-the-stored-customer-name-where-booking-details-are-shown-in-the-ui-at-minimum-booking-details-screen-admin-dashboard-booking-details-panel-with-graceful-fallback-when-the-name-is-missing",
+      "featureTitle": "Display the stored customer name where booking details are shown in the UI (at minimum: Booking Details screen; Admin Dashboard booking details panel), with graceful fallback when the name is missing.",
       "files": [
-        "frontend/src/hooks/useBookingReview.ts",
         "frontend/src/screens/AdminDashboardScreen.tsx",
         "frontend/src/screens/BookingDetailsScreen.tsx"
       ],
@@ -61,7 +59,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-19"
+        "REQ-23"
       ],
       "confidence": "high"
     }
